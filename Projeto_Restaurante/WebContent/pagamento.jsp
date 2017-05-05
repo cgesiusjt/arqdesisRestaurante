@@ -75,11 +75,9 @@
 							<td>${pgt.mesa.codigoMesa}</td>
 							<td>${pgt.cardapioTO.descricao}</td>
 							<td>${pgt.cardapioTO.quantidade}</td>
-							<td><fmt:formatNumber
-									value="${pgt.cardapioTO.valorUnitario}" type="currency">
+							<td><fmt:formatNumber value="${pgt.cardapioTO.valorUnitario}" type="currency">
 								</fmt:formatNumber></td>
-							<td><fmt:formatNumber
-									value="${pgt.cardapioTO.quantidade * pgt.cardapioTO.valorUnitario}"
+							<td><fmt:formatNumber value="${pgt.cardapioTO.quantidade * pgt.cardapioTO.valorUnitario}"
 									type="currency">
 								</fmt:formatNumber></td>
 						</tr>
