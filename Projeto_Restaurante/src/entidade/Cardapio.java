@@ -12,6 +12,7 @@ public class Cardapio implements Serializable {
 	private String disponibilidade;
 	private Integer quantidade;
 	private Double valorTotal;
+	// teste 
 	
 	public Cardapio() {
 
