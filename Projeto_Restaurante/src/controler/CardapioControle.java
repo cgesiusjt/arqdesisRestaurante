@@ -1,8 +1,6 @@
 package controler;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,8 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import entidade.CardapioTO;
 import persistence.CardapioDAO;
-import persistence.PedidoDAO;
-import service.CalculoPedido;
 import service.CardapioService;
 
 
@@ -22,20 +18,14 @@ public class CardapioControle extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private List<CardapioTO> listaCardapio;
 	private CardapioTO cardapioTO;
 	private CardapioDAO cardapioDAO;
-	private PedidoDAO daoPedido;
 	private CardapioService cardapioService;
-	private CalculoPedido calculoPedido;
 
     public CardapioControle() {
     	cardapioTO = new CardapioTO();
     	cardapioDAO = new CardapioDAO();
     	cardapioService = new CardapioService();
-    	daoPedido = new PedidoDAO();
-    	calculoPedido = new CalculoPedido();
-    	listaCardapio = new ArrayList<>();
     }
     
     protected void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -83,8 +73,8 @@ public class CardapioControle extends HttpServlet {
     				
     				Integer idCardapio = Integer.parseInt(request.getParameter("idEditar"));
     				
-    				CardapioDAO cardapioDAO = new CardapioDAO();
-    				CardapioTO cardapioTO = cardapioDAO.consulta(idCardapio);
+    				cardapioDAO = new CardapioDAO();
+    				cardapioTO = cardapioDAO.consulta(idCardapio);
     				
     				request.setAttribute("cardapio", cardapioTO);
     				

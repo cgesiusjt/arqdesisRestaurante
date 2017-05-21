@@ -36,6 +36,7 @@
 			<br/><br/>
 		</div>
 		
+		<div class="row">
 		<div class="col-md-3 panel text-center" >
 			<div class="glyphicon glyphicon-blackboard" style="font-size: 3em"></div>
 			<br/><br/>
@@ -63,11 +64,21 @@
 		<div class="col-md-3 panel text-center" >
 			<div class="glyphicon glyphicon-tasks" style="font-size: 3em"></div>
 			<br/><br/>
+			<a href="pagamento.jsp" class="btn btn-default btn-block">
+				Fazer Pagamento
+			</a>
+		</div>
+		</div>
+		
+		<div class="row">
+			<div class="col-md-3 panel text-center" >
+			<div class="glyphicon glyphicon-tasks" style="font-size: 3em"></div>
+			<br/><br/>
 			<a href="" class="btn btn-default btn-block">
 				Relatórios Gerencias
 			</a>
 		</div>
-		
+		</div>
 						
 	</body>
 </html>

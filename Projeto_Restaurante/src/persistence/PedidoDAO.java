@@ -36,26 +36,6 @@ public class PedidoDAO extends DAO {
 		closeConection();
 
 	}
-	
-	public void insertPedido(List<CardapioTO> lista) throws Exception {
-
-		String query = "insert into pedidotabela(idpedidotabela, categoria, descricao, valorunitario, quantidade, disponibilidade)"
-				+ "values(?, ?, ?, ?, ?, ?)";
-		openConection();
-		stmt = con.prepareStatement(query);
-		for (int i = 0; i <= lista.size(); i++) {
-			stmt.setInt(1, lista.get(i).getIdCardapio());
-			stmt.setString(2, lista.get(i).getCategoria());
-			stmt.setString(3, lista.get(i).getDescricao());
-			stmt.setDouble(4, lista.get(i).getValorUnitario());
-			stmt.setInt(5, lista.get(i).getQuantidade());
-			stmt.setString(6, lista.get(i).getDisponibilidade());
-			stmt.execute();
-
-		}
-		stmt.close();
-		closeConection();
-	}
 
 	public void insertItemPedido(List<CardapioTO> lista, Integer pedido) throws Exception {
 
@@ -76,7 +56,7 @@ public class PedidoDAO extends DAO {
 
 	}
 
-	public void insertItemPedidoAux(Cardapio c, Integer pedido, Integer mesa) throws Exception {
+	public void insertItemPedidoAux(List<CardapioTO> lista, Integer pedido, Integer mesa) throws Exception {
 
 		String query = "insert into pedidoaux(quantidade, idpedido, idcardapio, mesa) values(?, ?, ?, ?)";
 
@@ -84,75 +64,16 @@ public class PedidoDAO extends DAO {
 
 		stmt = con.prepareStatement(query);
 
-		stmt.setInt(1, c.getQuantidade());
-		stmt.setInt(2, pedido);
-		stmt.setInt(3, c.getIdcardapio());
-		stmt.setInt(4, mesa);
-		stmt.execute();
-		stmt.close();
-
-		closeConection();
-
-	}
-	
-	public void insertPagamentoAux(Cardapio c, Integer pedido, Integer mesa) throws Exception {
-
-		String query = "insert into pagamentoaux(quantidade, idpedido, idcardapio, mesa) values(?, ?, ?, ?)";
-
-		openConection();
-
-		stmt = con.prepareStatement(query);
-
-		stmt.setInt(1, c.getQuantidade());
-		stmt.setInt(2, pedido);
-		stmt.setInt(3, c.getIdcardapio());
-		stmt.setInt(4, mesa);
-		stmt.execute();
-		stmt.close();
-
-		closeConection();
-
-	}
-	
-	public List<CardapioTO> allTabelaPedido() throws Exception {
-		
-		String query = "select * from pedidotabela";
-		
-		openConection();
-		
-		stmt = con.prepareStatement(query);
-		rs = stmt.executeQuery();
-		
-		List<CardapioTO> lista = new ArrayList<CardapioTO>();
-		
-		while (rs.next()) {
-			
-			cardapioTO = new CardapioTO();
-			
-			cardapioTO.setIdCardapio(rs.getInt("idpedidotabela"));
-			cardapioTO.setCategoria(rs.getString("categoria"));
-			cardapioTO.setDescricao(rs.getString("descricao"));
-			cardapioTO.setValorUnitario(rs.getDouble("valorunitario"));
-			cardapioTO.setQuantidade(rs.getInt("quantidade"));
-			cardapioTO.setDisponibilidade(rs.getString("disponibilidade"));
-			lista.add(cardapioTO);
+		for(int i = 0; i < lista.size(); i++) {
+			stmt.setInt(1, lista.get(i).getQuantidade());
+			stmt.setInt(2, pedido);
+			stmt.setInt(3, lista.get(i).getIdCardapio());
+			stmt.setInt(4, mesa);
+			stmt.execute();
 		}
-		
-		closeConection();
-		return lista;
-	}
-	
-	public void delete(Integer idCardapio) throws Exception {
-		String query = "delete from pedidotabela where idpedidotabela = ?";
-		
-		openConection();
-		
-		stmt = con.prepareStatement(query);
-		stmt.setInt(1, idCardapio);
-		stmt.execute();
 		stmt.close();
-		
 		closeConection();
+
 	}
 	
 	public List<Pedido> carregarPedido() throws Exception {
@@ -187,7 +108,7 @@ public class PedidoDAO extends DAO {
 	
 	public List<Pedido> allPedidoPagamento () throws Exception {
 		
-		String query = "select * from pagamento";
+		String query = "select * from vw_pedidoAux";
 		
 		openConection();
 		stmt = con.prepareStatement(query);
@@ -212,6 +133,29 @@ public class PedidoDAO extends DAO {
 		return lista;
 	}
 	
+	public List<Pedido> allPedidoCozinha () throws Exception{
+		
+		String query = "select * from vw_pedidoAux";
+		openConection();
+		stmt = con.prepareStatement(query);
+		rs = stmt.executeQuery();
+		List<Pedido> lista = new ArrayList<>();
+		
+		while (rs.next()) {
+			pedido = new Pedido();
+			pedido.setCardapioTO(new CardapioTO());
+			
+			pedido.setIdPedido(rs.getInt("idpedido"));
+			pedido.getCardapioTO().setDescricao(rs.getString("descricao"));
+			pedido.getCardapioTO().setQuantidade(rs.getInt("quantidade"));
+			lista.add(pedido);
+		}
+		stmt.close();
+		closeConection();
+		
+		return lista;
+	}
+	
 	public void updateDataHoraSaida(PedidoServicos pedidoServicos, Integer codPedido) throws Exception {
 
 		String query = "update pedido set datasaida =?, horasaida =?" + "where idpedido =? ";
@@ -227,18 +171,36 @@ public class PedidoDAO extends DAO {
 		stmt.close();
 
 		closeConection();
-
 	}
 	
-	/*
-	public void deletePedidoAux(Integer idpedido) throws Exception {
+	public void insertCpf(List<Pedido> lista, String cpf) throws Exception {
 
-		String query = "delete from pedidoaux where idpedido = ?";
+		String query = "insert into cpfUsuario(cpf, idpedido) values(?,?)";
+
+		openConection();
+
+		stmt = con.prepareStatement(query);
+		
+		for (int i = 0; i < lista.size(); i++) {
+			stmt.setString(1, cpf);
+			stmt.setInt(2, lista.get(i).getIdPedido());
+			stmt.execute();
+		}
+		
+		stmt.close();
+
+		closeConection();
+	}
+	
+	
+	public void deletePedidoAux(Integer mesa) throws Exception {
+
+		String query = "delete from pedidoaux where mesa = ?";
 		
 		openConection();
 
 		stmt = con.prepareStatement(query);
-		stmt.setInt(1, idpedido);
+		stmt.setInt(1, mesa);
 		stmt.execute();
 		stmt.close();
 
@@ -258,7 +220,7 @@ public class PedidoDAO extends DAO {
 
 		closeConection();
 	}
-	
+	/*
 	public List<Pedido> carregarPedidoAux() throws Exception {
 
 		String query = "select * from vw_pedidoAux";
@@ -287,5 +249,85 @@ public class PedidoDAO extends DAO {
 		return lista;
 	}
 	*/
+	
+	public void insertPedido(List<CardapioTO> lista) throws Exception {
+
+		String query = "insert into pedidotabela(idpedidotabela, categoria, descricao, valorunitario, quantidade, disponibilidade)"
+				+ "values(?, ?, ?, ?, ?, ?)";
+		openConection();
+		stmt = con.prepareStatement(query);
+		for (int i = 0; i <= lista.size(); i++) {
+			stmt.setInt(1, lista.get(i).getIdCardapio());
+			stmt.setString(2, lista.get(i).getCategoria());
+			stmt.setString(3, lista.get(i).getDescricao());
+			stmt.setDouble(4, lista.get(i).getValorUnitario());
+			stmt.setInt(5, lista.get(i).getQuantidade());
+			stmt.setString(6, lista.get(i).getDisponibilidade());
+			stmt.execute();
+
+		}
+		stmt.close();
+		closeConection();
+	}
+	
+	public void insertPagamentoAux(Cardapio c, Integer pedido, Integer mesa) throws Exception {
+
+		String query = "insert into pagamentoaux(quantidade, idpedido, idcardapio, mesa) values(?, ?, ?, ?)";
+
+		openConection();
+
+		stmt = con.prepareStatement(query);
+
+		stmt.setInt(1, c.getQuantidade());
+		stmt.setInt(2, pedido);
+		stmt.setInt(3, c.getIdcardapio());
+		stmt.setInt(4, mesa);
+		stmt.execute();
+		stmt.close();
+
+		closeConection();
+
+	}
+	
+	public void delete(Integer idCardapio) throws Exception {
+		String query = "delete from pedidotabela where idpedidotabela = ?";
+		
+		openConection();
+		
+		stmt = con.prepareStatement(query);
+		stmt.setInt(1, idCardapio);
+		stmt.execute();
+		stmt.close();
+		
+		closeConection();
+	}
+	
+public List<CardapioTO> allTabelaPedido() throws Exception {
+		
+		String query = "select * from pedidotabela";
+		
+		openConection();
+		
+		stmt = con.prepareStatement(query);
+		rs = stmt.executeQuery();
+		
+		List<CardapioTO> lista = new ArrayList<CardapioTO>();
+		
+		while (rs.next()) {
+			
+			cardapioTO = new CardapioTO();
+			
+			cardapioTO.setIdCardapio(rs.getInt("idpedidotabela"));
+			cardapioTO.setCategoria(rs.getString("categoria"));
+			cardapioTO.setDescricao(rs.getString("descricao"));
+			cardapioTO.setValorUnitario(rs.getDouble("valorunitario"));
+			cardapioTO.setQuantidade(rs.getInt("quantidade"));
+			cardapioTO.setDisponibilidade(rs.getString("disponibilidade"));
+			lista.add(cardapioTO);
+		}
+		
+		closeConection();
+		return lista;
+	}
 	
 }

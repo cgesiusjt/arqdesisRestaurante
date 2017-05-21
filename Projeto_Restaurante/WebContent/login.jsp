@@ -44,8 +44,7 @@
 
 	<div class="col-md-4" align="center">
 
-		<form name="formularioLogin" method="post"
-			action="LoginControle?acao=autenticar">
+		<form name="formularioLogin" method="post" action="LoginControle?acao=autenticar">
 
 			<div class="panel panel-primary">
 
@@ -54,7 +53,7 @@
 				</div>
 				<div class="panel-body">
 
-					<label>Informe seu login:</label> <input type="text" name="login"
+					<label>Informe seu login:</label> <input type="text" id="login" name="login"
 						class="form-control" placeholder="Digite aqui" /> <br /> 
 						<label>Informe sua Senha:</label> <input type="password" name="senha"
 						class="form-control" placeholder="Digite aqui" />

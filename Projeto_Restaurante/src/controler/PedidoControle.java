@@ -16,6 +16,7 @@ import entidade.CardapioTO;
 import entidade.Mesa;
 import entidade.Pagamento;
 import entidade.Pedido;
+import entidade.Usuario;
 import persistence.CardapioDAO;
 import persistence.PedidoDAO;
 import service.CalculoPedido;
@@ -29,8 +30,9 @@ public class PedidoControle extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	public static List<CardapioTO> listaCardapio = new ArrayList<CardapioTO>();
-	private List<Pedido> listaPedido = new ArrayList<>();
 	public static List<Pedido> listaPedidoPag = new ArrayList<>();
+	public static List<Pedido> listaPedidoCozinha = new ArrayList<>();
+	private List<Pedido> listaPedido = new ArrayList<>();
 	private List<Pedido> listPedido = new ArrayList<>();
 	private CardapioTO cardapioTO;
 	private CardapioDAO cardapioDAO;
@@ -40,7 +42,9 @@ public class PedidoControle extends HttpServlet {
 	private PedidoServicos pedidoServicos;
 	private Integer codPedido = 0;
 	private String destino = null;
-	Pagamento pagamento = new Pagamento();
+	private Pagamento pagamento = new Pagamento();
+	private Mesa mesa = new Mesa();
+	private Usuario usuario;
 	NumberFormat formatValor = new DecimalFormat("0.00");
     
     public PedidoControle() {
@@ -50,6 +54,7 @@ public class PedidoControle extends HttpServlet {
     	pedidoDAO = new PedidoDAO();
     	pedido = new Pedido();
     	pedidoServicos = new PedidoServicos();
+    	usuario = new Usuario();
     }
     
 	protected void execute (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -67,6 +72,7 @@ public class PedidoControle extends HttpServlet {
 					cardapioTO = cardapioDAO.consulta(idCardapio);
 					cardapioTO.setIdCardapio(cardapioTO.getIdCardapio());
 					cardapioTO.setCategoria(cardapioTO.getCategoria());
+					
 					cardapioTO.setDescricao(cardapioTO.getDescricao());
 					cardapioTO.setValorUnitario(cardapioTO.getValorUnitario());
 					cardapioTO.setQuantidade(quantidade);
@@ -118,8 +124,8 @@ public class PedidoControle extends HttpServlet {
     			try {
     				if(listaCardapio.size() > Numeros.NUM_0 && !pedido.getIdPedido().equals(null) && pedido.getIdPedido() > Numeros.NUM_0) {
     					pedidoDAO.insertItemPedido(listaCardapio, pedido.getIdPedido());
-    					pedidoDAO.updateDataHoraSaida(pedidoServicos, pedido.getIdPedido());
-    					destino = "pagamento.jsp";
+    					pedidoDAO.insertItemPedidoAux(listaCardapio, pedido.getIdPedido(), mesa.getCodigoMesa());
+    					destino = "pedido.jsp";
     				}
     				
     				request.setAttribute("sucesso", "Pedido realizado com Sucesso");
@@ -136,7 +142,7 @@ public class PedidoControle extends HttpServlet {
     			
     			try {
     				Integer codigoMesa = Integer.parseInt(request.getParameter("codMesa"));
-        			if(codigoMesa > 1 && codigoMesa <= 50) {
+        			if(codigoMesa >= 1 && codigoMesa <= 50) {
         				listPedido = pedidoDAO.allPedidoPagamento();
             			
             			for(int i = 0; i < listPedido.size(); i++) {
@@ -175,7 +181,7 @@ public class PedidoControle extends HttpServlet {
     			} finally {
     				request.getRequestDispatcher("pagamento.jsp").forward(request, response);
     			}
-    		} else if(acao.equalsIgnoreCase("pagarDinheiro")) {
+    		} else if(acao.equalsIgnoreCase("calcularTroco")) {
     			try {
     				double valorTroco = 0.0;
     				double valorCompra = 0.0;
@@ -186,6 +192,7 @@ public class PedidoControle extends HttpServlet {
     				pagamento.setTroco(formatValor.format(valorTroco));
     				
     				request.setAttribute("trocoPagamento", pagamento);
+    				request.setAttribute("cardapio", cardapioTO);
     				
     			} catch(Exception e) {
     				request.setAttribute("mensagem", e.getMessage());
@@ -193,19 +200,62 @@ public class PedidoControle extends HttpServlet {
     				request.getRequestDispatcher("pagamento.jsp").forward(request, response);
     			}
     			
+    		} else if (acao.equalsIgnoreCase("informarCpf")) {
+    			try {
+    				String cpf = request.getParameter("cpf");
+    				usuario.setCpf(cpf.replace("-", "."));
+    				if (listaPedidoPag.size() > 0) {
+    					List<Pedido> listaPedidoCliente = new ArrayList<>();
+    					for (int i = 0; i < listaPedidoPag.size(); i ++) {
+    						pedido = new Pedido();
+    						pedido.setIdPedido(listaPedidoPag.get(i).getIdPedido());
+    						listaPedidoCliente.add(pedido);
+    					}
+    					pedidoDAO.insertCpf(listaPedidoCliente, usuario.getCpf());
+    				}
+    				
+    			} catch (Exception e) {
+    				request.setAttribute("mensagem", e.getMessage());
+    			} finally {
+    				request.getRequestDispatcher("pagamento.jsp").forward(request, response);
+    			}
+    		}else if (acao.equalsIgnoreCase("pagamentoDinheiro")){
+				try {
+					
+					pedidoDAO.updateDataHoraSaida(pedidoServicos, pedido.getIdPedido());
+					pedidoDAO.deletePedidoAux(numMesaDelete());
+					request.setAttribute("sucesso", "Pagamento realizado com sucesso.");
+					
+				} catch (Exception e) {
+					request.setAttribute("mensagem", e.getMessage());
+				} finally {
+					listaPedidoPag = new ArrayList<>();
+					request.getRequestDispatcher("pagamento.jsp").forward(request, response);
+				}
+    		} else if (acao.equalsIgnoreCase("pagamentoCartao")){
+				try {
+					pedidoDAO.updateDataHoraSaida(pedidoServicos, pedido.getIdPedido());
+					pedidoDAO.deletePedidoAux(numMesaDelete());
+					request.setAttribute("sucesso", "Pagamento realizado com sucesso.");
+					
+				} catch (Exception e) {
+					request.setAttribute("mensagem", e.getMessage());
+				} finally {
+					listaPedidoPag = new ArrayList<>();
+					request.getRequestDispatcher("pagamento.jsp").forward(request, response);
+				}
     		} else if (acao.equalsIgnoreCase("addMesa")) {
     			
     			destino = "mesa.jsp";
     			try {
     				Integer numMesa = Integer.parseInt(request.getParameter("mesa"));
     				
-    				Mesa mesa = new Mesa();
     				mesa.setCodigoMesa(numMesa);
     				
     				if (numMesa != null && !numMesa.equals(Numeros.NUM_0) && numMesa >= 1 && numMesa <= 50) {
     					destino = "pedido.jsp";
     					
-    					pedidoDAO.insertPedido("gerente", pedidoServicos, mesa.getCodigoMesa());
+    					pedidoDAO.insertPedido(usuario.getNome(), pedidoServicos, mesa.getCodigoMesa());
     					
     					listaPedido = pedidoDAO.carregarPedido();
     					int ultimaPosico = 0;
@@ -228,8 +278,54 @@ public class PedidoControle extends HttpServlet {
     			} finally {
     				request.getRequestDispatcher(destino).forward(request, response);
     			}
+    		} else if (acao.equalsIgnoreCase("listarPedidosCozinha")) {
+    			try {
+    				
+    				listaPedidoCozinha = pedidoDAO.allPedidoCozinha();
+    				
+    				for(int i = 0; i < listaPedidoCozinha.size(); i++) {
+    					pedido.setIdPedido(listaPedidoCozinha.get(i).getIdPedido());
+    					pedido.getCardapioTO().setDescricao(listaPedidoCozinha.get(i).getCardapioTO().getDescricao());
+    					pedido.getCardapioTO().setQuantidade(listaPedidoCozinha.get(i).getCardapioTO().getQuantidade());
+    					listaPedidoCozinha.add(pedido);
+    				}
+    				
+    				request.setAttribute("pedido", pedido);
+    			} catch (Exception e) {
+    				request.setAttribute("mensagem", "Erro." + e.getMessage());
+    			} finally {
+    				request.getRequestDispatcher("pedidosCozinha.jsp").forward(request, response);
+    			}
+    		} else if (acao.equalsIgnoreCase("avaisaGarcom")) {
+    			try {
+    				
+    				Integer numPedido = Integer.parseInt(request.getParameter("numPedido"));
+    				
+    				for(int i = 0; i < listaPedidoCozinha.size(); i++) {
+    					if(numPedido == listaPedidoCozinha.get(i).getIdPedido()) {
+    						request.setAttribute("avisa", "Pedido: " + listaPedidoCozinha.get(i).getIdPedido()
+    								+ " Pronto para Retirar e Servir");
+    						listaPedidoCozinha.remove(i);
+    					}
+    				}
+    				
+    				
+    			} catch (Exception e) {
+    				request.setAttribute("mensagem", e.getMessage());
+     			} finally {
+    				request.getRequestDispatcher("pedidosCozinha.jsp").forward(request, response);
+    			}
     		}
 		}
+	}
+	
+	public Integer numMesaDelete() {
+		
+		int codigo = 0;
+				if (listaPedidoPag.size() > 0) {
+					codigo = listaPedidoPag.get(codigo).getMesa().getCodigoMesa();
+				}
+		return codigo;
 	}
     
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

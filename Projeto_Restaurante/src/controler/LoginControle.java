@@ -20,6 +20,7 @@ public class LoginControle extends HttpServlet {
     
     public LoginControle() {
         super();
+        usuario = new Usuario();
     }
     
     protected void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -35,6 +36,7 @@ public class LoginControle extends HttpServlet {
     			String senha = CriptografiaSenha.encriptarSenha(request.getParameter("senha"));
     			
     			UsuarioDao usuarioDao = new UsuarioDao();
+    			usuario.setNome(login);
     			
     			usuario = usuarioDao.autenticar(login, senha);
     			
@@ -45,8 +47,14 @@ public class LoginControle extends HttpServlet {
     				
     				if(login.equalsIgnoreCase("gerente")) {
     					destino = "gerenciamento.jsp";
-    				} 
-    			} else {
+    				} else if (login.equalsIgnoreCase("garcom")) {
+    					destino = "pedido.jsp";
+    				} else if (login.equalsIgnoreCase("caixa")) {
+    					destino = "pagamento.jsp";
+    				} else if (login.equalsIgnoreCase("cozinheiro")) {
+    					destino = "pedidosCozinha.jsp";
+    				}
+     			} else {
 					throw new Exception("Acesso Negado. Login e/ou senha inválido");
 				}
     			

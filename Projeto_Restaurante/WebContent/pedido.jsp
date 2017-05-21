@@ -27,10 +27,7 @@
 			<h2>RESTAURANTE</h2>
 		</div>
 		
-		<div class="col-md-12 ">
-		
-		<a href="gerenciamento.jsp"> <input type="submit" value="Voltar" />
-		</a> Para página Inicial  
+		<div class="col-md-12 ">	
 		
 		<div class="row">
 			<div class="col-md-7" style=" height: 400px; overflow: auto;">
@@ -122,16 +119,15 @@
 				<div class="col-md-6">
 					<form name="formularioFchPedido" method="post"
 						action="PedidoControle?acao=fecharPedido">
-						<button type="submit" class="btn btn-primary">Fechar
-							Pedido</button>
+						<button type="submit" class="btn btn-primary">Fechar Pedido</button>
 					</form>
 				</div>
 
 				<div class="col-md-3"></div>
 
 				<div class="col-md-3" align="center">
-					<label>Valor Total</label> <input type="text" id="valorTotal"
-						name="valorTotal" class="form-control"
+					<label>Valor Total</label> 
+					<input type="text" id="valorTotal" name="valorTotal" class="form-control"
 						value="R$: ${cardapio.valorTotal}" readonly="readonly">
 
 				</div>
@@ -162,10 +158,10 @@
 				
 				<hr>
 				<div class="row">
+					<h4>${avisa}</h4>
 					<p align="justify" style="font: italic; font-family: cursive;">
 					 º Para remover insere o código abaixo e clique em remover</p>
-					<form name="formulariorem" method="post"
-						action="PedidoControle?acao=remover">
+					<form name="formulariorem" method="post" action="PedidoControle?acao=remover">
 						<div class="col-md-4" align="center">
 							<label>Código</label> <input type="text" id="codigoRemover"
 								name="codigoRemover" class="form-control"
